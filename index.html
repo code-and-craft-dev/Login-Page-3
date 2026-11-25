@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Imperial Emerald — Login & Sign Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --alabaster: #f8f7f4;
+      --porcelain: #fdfcf9;
+      --emerald-950: #022c22;
+      --emerald-900: #064e3b;
+      --emerald-800: #065f46;
+      --emerald-700: #047857;
+      --gold-light: #f6e6b4;
+      --gold-mid: #d4af37;
+      --gold-deep: #a87f24;
+      --ink: #0f2922;
+      --ink-muted: #526861;
+      --ease-spring: cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--ink);
+      background-color: var(--alabaster);
+      background-image:
+        radial-gradient(circle at 18% 20%, rgba(212, 175, 55, 0.09), transparent 48%),
+        radial-gradient(circle at 82% 80%, rgba(6, 78, 59, 0.08), transparent 48%);
+      overflow-x: hidden;
+    }
+
+    .border-shell {
+      position: relative;
+      width: 100%;
+      max-width: 840px;
+      padding: 1.5px;
+      border-radius: 22px;
+      background: linear-gradient(
+        135deg,
+        rgba(246, 230, 180, 0.85) 0%,
+        rgba(168, 127, 36, 0.55) 36%,
+        rgba(6, 78, 59, 0.28) 68%,
+        rgba(246, 230, 180, 0.78) 100%
+      );
+      box-shadow:
+        0 28px 64px -20px rgba(2, 44, 34, 0.28),
+        0 10px 28px -12px rgba(168, 127, 36, 0.16);
+    }
+
+    .auth-card {
+      position: relative;
+      width: 100%;
+      height: 510px;
+      background: var(--porcelain);
+      border-radius: 20.5px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* Diagonal curtains: reversed transition-delay sequences cover-then-reveal */
+    .curved-shape {
+      position: absolute;
+      right: -10px;
+      top: -10px;
+      width: 920px;
+      height: 640px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(246, 230, 180, 0.08), transparent 60%),
+        linear-gradient(135deg, var(--emerald-950) 0%, var(--emerald-900) 56%, var(--emerald-800) 100%);
+      border-bottom: 1.5px solid var(--gold-light);
+      box-shadow: 0 4px 18px rgba(168, 127, 36, 0.32);
+      transform-origin: bottom right;
+      transform: rotate(10deg) skewY(40deg);
+      transition: transform 0.95s var(--ease-spring);
+      transition-delay: 0.52s;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .auth-card.active .curved-shape {
+      transform: rotate(0deg) skewY(0deg);
+      transition-delay: 0.16s;
+    }
+
+    .curved-shape2 {
+      position: absolute;
+      left: 205px;
+      top: 100%;
+      width: 920px;
+      height: 700px;
+      background: var(--porcelain);
+      border-top: 1.5px solid transparent;
+      box-shadow: 0 -4px 18px transparent;
+      transform-origin: bottom left;
+      transform: rotate(0deg) skewY(0deg);
+      transition: transform 0.95s var(--ease-spring), border-color 0.35s ease, box-shadow 0.35s ease;
+      transition-delay: 0.14s;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .auth-card.active .curved-shape2 {
+      border-top-color: var(--gold-light);
+      box-shadow: 0 -4px 18px rgba(168, 127, 36, 0.28);
+      transform: rotate(-11deg) skewY(-41deg);
+      transition-delay: 0.5s;
+    }
+
+    .form-box {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    .form-box.login {
+      left: 0;
+      padding: 0 54px 0 46px;
+    }
+
+    .form-box.register {
+      right: 0;
+      padding: 0 46px 0 58px;
+      pointer-events: none;
+    }
+
+    .auth-card.active .form-box.login {
+      pointer-events: none;
+    }
+
+    .auth-card.active .form-box.register {
+      pointer-events: auto;
+    }
+
+    /* --D / --S offsets (0–6 exit, 17–23 enter) wait for the curtain sweep before entering */
+    .form-box.login .anim {
+      transform: translateX(0);
+      opacity: 1;
+      filter: blur(0);
+      transition: transform 0.58s var(--ease-spring), opacity 0.58s ease, filter 0.58s ease;
+      transition-delay: calc(0.055s * var(--S));
+    }
+
+    .auth-card.active .form-box.login .anim {
+      transform: translateX(-115%);
+      opacity: 0;
+      filter: blur(8px);
+      transition-delay: calc(0.045s * var(--D));
+    }
+
+    .form-box.register .anim {
+      transform: translateX(115%);
+      opacity: 0;
+      filter: blur(8px);
+      transition: transform 0.58s var(--ease-spring), opacity 0.58s ease, filter 0.58s ease;
+      transition-delay: calc(0.045s * var(--S));
+    }
+
+    .auth-card.active .form-box.register .anim {
+      transform: translateX(0);
+      opacity: 1;
+      filter: blur(0);
+      transition-delay: calc(0.055s * var(--D));
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--emerald-700);
+      margin-bottom: 6px;
+    }
+
+    .form-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 31px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--emerald-950);
+      margin-bottom: 22px;
+    }
+
+    .input-box {
+      position: relative;
+      width: 100%;
+      height: 50px;
+      margin-top: 18px;
+    }
+
+    .input-box input {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      border-bottom: 1.5px solid rgba(6, 78, 59, 0.24);
+      padding: 14px 36px 4px 0;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--ink);
+      transition: border-color 0.35s ease;
+    }
+
+    /* Uses :not(:placeholder-shown) with placeholder=" " so invalid text keeps label floated */
+    .input-box input:focus,
+    .input-box input:not(:placeholder-shown) {
+      border-bottom-color: var(--emerald-700);
+    }
+
+    .input-box label {
+      position: absolute;
+      top: 54%;
+      left: 0;
+      transform: translateY(-50%);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      pointer-events: none;
+      transition: top 0.3s ease, font-size 0.3s ease, color 0.3s ease;
+    }
+
+    .input-box input:focus ~ label,
+    .input-box input:not(:placeholder-shown) ~ label {
+      top: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--emerald-700);
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 2px;
+      top: 56%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--ink-muted);
+      transition: color 0.3s ease;
+      pointer-events: none;
+    }
+
+    .input-box input:focus ~ .input-icon,
+    .input-box input:not(:placeholder-shown) ~ .input-icon {
+      color: var(--emerald-700);
+    }
+
+    .toggle-pw {
+      position: absolute;
+      right: 0;
+      top: 56%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--ink-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.25s ease;
+    }
+
+    .toggle-pw:hover {
+      color: var(--emerald-700);
+    }
+
+    .toggle-pw:focus-visible,
+    .switch-btn:focus-visible,
+    .btn-submit:focus-visible {
+      outline: 2px solid var(--gold-mid);
+      outline-offset: 2px;
+    }
+
+    .btn-submit {
+      position: relative;
+      width: 100%;
+      height: 46px;
+      margin-top: 26px;
+      border: 1px solid rgba(212, 175, 55, 0.55);
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--emerald-950) 0%, var(--emerald-900) 58%, var(--emerald-800) 100%);
+      color: var(--gold-light);
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 10px 24px -10px rgba(2, 44, 34, 0.55);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 20%, rgba(246, 230, 180, 0.24) 50%, transparent 80%);
+      transform: translateX(-100%);
+      transition: transform 0.65s ease;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      border-color: var(--gold-light);
+      box-shadow: 0 14px 28px -10px rgba(2, 44, 34, 0.65), 0 0 16px rgba(212, 175, 55, 0.28);
+    }
+
+    .btn-submit:hover::before {
+      transform: translateX(100%);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .switch-row {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--ink-muted);
+    }
+
+    .switch-btn {
+      background: none;
+      border: none;
+      padding: 2px 4px;
+      margin-left: 4px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--emerald-700);
+      cursor: pointer;
+      border-bottom: 1.5px solid transparent;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .switch-btn:hover {
+      color: var(--gold-deep);
+      border-bottom-color: var(--gold-mid);
+    }
+
+    .info-content {
+      position: absolute;
+      top: 0;
+      width: 45%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .info-content.login {
+      right: 0;
+      text-align: right;
+      align-items: flex-end;
+      padding: 0 42px 92px 88px;
+    }
+
+    .info-content.register {
+      left: 0;
+      text-align: left;
+      align-items: flex-start;
+      padding: 0 88px 92px 42px;
+    }
+
+    .gold-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(246, 230, 180, 0.38);
+      background: rgba(246, 230, 180, 0.08);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 14px;
+    }
+
+    .gold-heading {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #fbf0ce 0%, #e1bd5c 45%, #f7e6b2 72%, #b98e2c 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 14px;
+    }
+
+    .gold-heading em {
+      font-style: italic;
+      font-weight: 600;
+    }
+
+    .info-copy {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: rgba(248, 247, 244, 0.88);
+      max-width: 215px;
+    }
+
+    .info-content.login .anim {
+      transform: translateX(0);
+      opacity: 1;
+      filter: blur(0);
+      transition: transform 0.58s var(--ease-spring), opacity 0.58s ease, filter 0.58s ease;
+      transition-delay: calc(0.055s * var(--S));
+    }
+
+    .auth-card.active .info-content.login .anim {
+      transform: translateX(115%);
+      opacity: 0;
+      filter: blur(8px);
+      transition-delay: calc(0.045s * var(--D));
+    }
+
+    .info-content.register .anim {
+      transform: translateX(-115%);
+      opacity: 0;
+      filter: blur(8px);
+      transition: transform 0.58s var(--ease-spring), opacity 0.58s ease, filter 0.58s ease;
+      transition-delay: calc(0.045s * var(--S));
+    }
+
+    .auth-card.active .info-content.register .anim {
+      transform: translateX(0);
+      opacity: 1;
+      filter: blur(0);
+      transition-delay: calc(0.055s * var(--D));
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--emerald-950), var(--emerald-900));
+      border: 1px solid rgba(212, 175, 55, 0.55);
+      color: var(--alabaster);
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: 0 16px 36px -12px rgba(2, 44, 34, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s var(--ease-spring);
+      z-index: 30;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold-light);
+      box-shadow: 0 0 10px var(--gold-mid);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 720px) {
+      .auth-card {
+        height: auto;
+        min-height: 490px;
+      }
+
+      .curved-shape,
+      .curved-shape2,
+      .info-content {
+        display: none;
+      }
+
+      .form-box {
+        width: 100%;
+        padding: 40px 28px 34px !important;
+      }
+
+      /* Active panel becomes position: relative so card height adapts on mobile */
+      .form-box.login {
+        position: relative;
+        height: auto;
+      }
+
+      .auth-card.active .form-box.login {
+        position: absolute;
+        inset: 0;
+        visibility: hidden;
+      }
+
+      .form-box.register {
+        position: absolute;
+        inset: 0;
+        visibility: hidden;
+      }
+
+      .auth-card.active .form-box.register {
+        position: relative;
+        height: auto;
+        visibility: visible;
+      }
+
+      .form-box.login::before,
+      .form-box.register::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, var(--emerald-950), var(--emerald-800), var(--gold-mid));
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .curved-shape,
+      .curved-shape2,
+      .form-box .anim,
+      .info-content .anim,
+      .btn-submit,
+      .btn-submit::before,
+      .toast {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="border-shell">
+    <main class="auth-card" id="authCard">
+      <div class="curved-shape" aria-hidden="true"></div>
+      <div class="curved-shape2" aria-hidden="true"></div>
+
+      <section class="form-box login" aria-label="Sign in">
+        <span class="eyebrow anim" style="--D:0; --S:17;">Member Access</span>
+        <h1 class="form-title anim" style="--D:1; --S:18;">Sign In</h1>
+        <form id="loginForm">
+          <div class="input-box anim" style="--D:2; --S:19;">
+            <input type="text" id="loginUsername" name="username" placeholder=" " required autocomplete="username" />
+            <label for="loginUsername">Username</label>
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+
+          <div class="input-box anim" style="--D:3; --S:20;">
+            <input type="password" id="loginPassword" name="password" placeholder=" " required autocomplete="current-password" />
+            <label for="loginPassword">Password</label>
+            <button type="button" class="toggle-pw" data-target="loginPassword" aria-label="Show password" aria-pressed="false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" class="btn-submit anim" style="--D:4; --S:21;">Sign In</button>
+
+          <p class="switch-row anim" style="--D:5; --S:22;">
+            Don't have an account?
+            <button type="button" class="switch-btn" id="toRegister">Sign Up</button>
+          </p>
+        </form>
+      </section>
+
+      <aside class="info-content login" aria-hidden="false">
+        <span class="gold-badge anim" style="--D:0; --S:17;">Imperial Suite</span>
+        <h2 class="gold-heading anim" style="--D:1; --S:18;">Welcome<br /><em>Back!</em></h2>
+        <p class="info-copy anim" style="--D:2; --S:19;">
+          We're delighted to have you with us again. Sign in to pick up right where you left off.
+        </p>
+      </aside>
+
+      <section class="form-box register" aria-label="Create account" inert>
+        <span class="eyebrow anim" style="--D:17; --S:0;">New Membership</span>
+        <h1 class="form-title anim" style="--D:18; --S:1;">Register</h1>
+        <form id="registerForm">
+          <div class="input-box anim" style="--D:19; --S:2;">
+            <input type="text" id="regUsername" name="username" placeholder=" " required autocomplete="username" />
+            <label for="regUsername">Username</label>
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+
+          <div class="input-box anim" style="--D:20; --S:3;">
+            <input type="email" id="regEmail" name="email" placeholder=" " required autocomplete="email" />
+            <label for="regEmail">Email</label>
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+          </div>
+
+          <div class="input-box anim" style="--D:21; --S:4;">
+            <input type="password" id="regPassword" name="password" placeholder=" " required autocomplete="new-password" />
+            <label for="regPassword">Password</label>
+            <button type="button" class="toggle-pw" data-target="regPassword" aria-label="Show password" aria-pressed="false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" class="btn-submit anim" style="--D:22; --S:5;">Register</button>
+
+          <p class="switch-row anim" style="--D:23; --S:6;">
+            Already have an account?
+            <button type="button" class="switch-btn" id="toLogin">Sign In</button>
+          </p>
+        </form>
+      </section>
+
+      <aside class="info-content register" aria-hidden="true">
+        <span class="gold-badge anim" style="--D:17; --S:0;">Imperial Suite</span>
+        <h2 class="gold-heading anim" style="--D:18; --S:1;"><em>Welcome!</em></h2>
+        <p class="info-copy anim" style="--D:19; --S:2;">
+          We're delighted to have you here. Create your account in seconds and reach out anytime you need assistance.
+        </p>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span class="toast-dot" aria-hidden="true"></span>
+    <span id="toastText"></span>
+  </div>
+
+  <script>
+    const card = document.getElementById('authCard');
+    const loginBox = card.querySelector('.form-box.login');
+    const registerBox = card.querySelector('.form-box.register');
+    const loginInfo = card.querySelector('.info-content.login');
+    const registerInfo = card.querySelector('.info-content.register');
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    let toastTimer;
+
+    const EYE_OPEN_ICON = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>`;
+
+    const EYE_OFF_ICON = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+        <line x1="2" x2="22" y1="2" y2="22" />
+      </svg>`;
+
+    // Syncs inert and aria-hidden so off-screen panels are skipped by keyboard & screen readers
+    function setAuthMode(isRegister) {
+      card.classList.toggle('active', isRegister);
+      loginBox.inert = isRegister;
+      registerBox.inert = !isRegister;
+      loginInfo.setAttribute('aria-hidden', String(isRegister));
+      registerInfo.setAttribute('aria-hidden', String(!isRegister));
+    }
+
+    document.getElementById('toRegister').addEventListener('click', () => setAuthMode(true));
+    document.getElementById('toLogin').addEventListener('click', () => setAuthMode(false));
+
+    document.querySelectorAll('.toggle-pw').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        if (!input) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', String(show));
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        btn.innerHTML = show ? EYE_OFF_ICON : EYE_OPEN_ICON;
+        input.focus();
+      });
+    });
+
+    function showToast(message) {
+      toastText.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = document.getElementById('loginUsername').value.trim();
+      showToast(`Welcome back, ${user || 'member'}. Signed in.`);
+      e.target.reset();
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = document.getElementById('regUsername').value.trim();
+      showToast(`Account created for ${user || 'new member'}. Switching to Sign In.`);
+      e.target.reset();
+      setTimeout(() => setAuthMode(false), 700);
+    });
+  </script>
+</body>
+</html>
