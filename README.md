@@ -1,4 +1,4 @@
-# Imperial Emerald & Champagne Gold — Auth Portal (`Login-page-2`)
+# Imperial Emerald & Champagne Gold — Auth Portal (`Login-page-3`)
 
 A single-file, responsive Login & Register portal (`index.html`) styled with a quiet-luxury **Alabaster, Imperial Emerald, and Champagne Gold** palette.
 
